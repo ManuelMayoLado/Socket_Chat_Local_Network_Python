@@ -7,6 +7,8 @@ import time
 import sys
 import locale
 
+SO = "Linux" if os.name == "posix" else "Windows"
+
 print u"*** Cliente Chat - Local ***"
 
 SERVER = raw_input("IP do Servidor: ")
@@ -42,7 +44,10 @@ print u"-- ID: "+str(ID),u"Alias: "+ALIAS+" --"
 
 #EXECUTAMOS O SCRIPT QUE MANEXA O SOCKET PASIVO
 try:
-	os.system("start python "+"pasivo.py "+SERVER+" "+str(PORT)+" "+str(ID))
+	if SO == "Windows":
+		os.system("start python "+"pasivo.py "+SERVER+" "+str(PORT)+" "+str(ID))
+	else:
+		os.system('gnome-terminal -e "'+'python '+'pasivo.py '+SERVER+' '+str(PORT)+' '+str(ID)+'"')
 except:
 	print u"Non se puido abrir o script 'pasivo.py'"
 
