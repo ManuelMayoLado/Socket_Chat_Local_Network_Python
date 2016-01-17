@@ -49,7 +49,8 @@ try:
 	else:
 		os.system('gnome-terminal -e "'+'python '+'pasivo.py '+SERVER+' '+str(PORT)+' '+str(ID)+'"')
 except:
-	print u"Non se puido abrir o script 'pasivo.py'"
+	print u"Non se puido executar en outro terminal o script 'pasivo.py'"
+	sys.exit(0)
 
 print "Escriba as mensaxes e presione 'INTRO' para enviar\n"
 	

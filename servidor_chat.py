@@ -55,7 +55,7 @@ class Procesando_Conexion(Thread):
 					pass
 			else:
 				break
-		print(u"Conexión cerrada:",self.sock, self.addr)
+		print(u"Conexión cerrada:", id, self.addr)
 
 		
 #NOVOS CLIENTES - CONEXIÓNS
@@ -85,8 +85,7 @@ def servidor_init():
 		
 		#COMPROBAMOS O ID DO CLIENTE E SE XA HAI UN CLIENTE COA MESMA IP
 		if (id_cliente == 0) and (not addr[0] in [client["ip"] for client in clientes.values()]):
-			
-			#COMPROBAMOS SE O ALIAS XA EXISTE E OU SE NON HAI
+			#COMPROBAMOS SE O ALIAS XA EXISTE OU SE NON HAI
 			lista_alias = [client["alias"] for client in clientes.values()]
 			if not alias.replace(" ",""):
 				alias = "Anonymous"
