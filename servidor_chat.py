@@ -5,6 +5,7 @@
 import socket
 import json
 import sys
+import random
 from threading import *
 
 #VARIABLES SERVIDOR
@@ -73,15 +74,18 @@ def servidor_init():
 			sock, addr = serversocket.accept()
 		except:
 			serversocket.close()
+			
 		print(u">>> Petición de: "+addr[0])
 		
-		data = sock.recv(1024)
-		id_cliente, alias = json.loads(data)
+		try:
+			data = sock.recv(1024)
+			data = json.loads(data)
+		except:
+			data = ["","",0]
 		
-		if id_cliente == 0:
-			print u"\tPetición\tID: "+str(id_cliente),"Alias: "+alias
-		else:
-			print u"\tPetición\tID: "+str(id_cliente), alias
+		id_cliente, alias, key = data
+		
+		print u"\tRecibido\t-ID: "+str(id_cliente),"-Alias: "+str(alias),"-Key: "+str(key)
 		
 		#COMPROBAMOS O ID DO CLIENTE E SE XA HAI UN CLIENTE COA MESMA IP
 		if (id_cliente == 0) and (not addr[0] in [client["ip"] for client in clientes.values()]):
@@ -98,13 +102,15 @@ def servidor_init():
 					alias_engadido += 1
 				alias = alias+"_"+str(alias_engadido)
 			#GARDAMOS O SOCK ACTIVO DO CLIENTE
-			clientes[id] = {"ip":addr[0],"activo":sock,"pasivo":None,"alias":alias}
+			key = random.randint(1,100000)
+			clientes[id] = {"ip":addr[0],"activo":sock,"pasivo":None,"alias":alias,"key":key}
 			#ENVIAMOS AO CLIENTE O SEU ID E ALIAS
-			msx = json.dumps([id,alias])
+			msx = json.dumps([id,alias,key])
 			sock.send(msx)
-			print u"\tDevolución\tID: "+str(id),"Alias: "+alias
+			print u"\tDevolución\t-ID: "+str(id),"-Alias: "+str(alias), "-Key: "+str(key)
 	
-		elif (id in clientes) and not (clientes[id]["pasivo"]):
+		elif ((id in clientes) and (alias == u"Pasivo") and (key == str(clientes[id]["key"]))
+				and not (clientes[id]["pasivo"])):
 			#GARDAMOS O SOCK PASIVO DO CLIENTE
 			clientes[id]["pasivo"] = sock
 			#PROCESAMOS A CONEXIÓN DO CLIENTE
@@ -119,9 +125,14 @@ def servidor_init():
 			id += 1
 			
 		else:
-			msx = json.dumps([0,"Rechazar"])
-			sock.send(msx)
+			msx = json.dumps([0,"Rechazar",0])
+			try:
+				sock.send(msx)
+				del clientes[id]
+			except:
+				pass
 			print u"\t--ERROR--\t",addr
+			print u"\t"+str(clientes)
 		
 servidor_init()
 

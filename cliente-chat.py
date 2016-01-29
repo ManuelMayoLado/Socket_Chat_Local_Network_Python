@@ -27,15 +27,16 @@ activo = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 activo.connect((SERVER, PORT))
 
 #ENVIMOS A ID 0 PARA QUE O SERVIDOR NOS ASIGNE UNHA ID
-msx = [0,ALIAS]
+#ID, ALIAS, KEY
+msx = [0,ALIAS,0]
 activo.send(json.dumps(msx))
 
 #RECIVIMOS A CONTESTACIÓN DO SERVIDOR
 data = activo.recv(256)
 
-ID,ALIAS = json.loads(data)
+ID,ALIAS,KEY = json.loads(data)
 
-if ID == 0 and ALIAS == "Rechazar":
+if ID == 0 or ALIAS == "Rechazar":
 	print u"Conexión rechazada polo servidor"
 	sys.exit(0)
 
@@ -45,9 +46,10 @@ print u"-- ID: "+str(ID),u"Alias: "+ALIAS+" --"
 #EXECUTAMOS O SCRIPT QUE MANEXA O SOCKET PASIVO
 try:
 	if SO == "Windows":
-		os.system("start python "+"pasivo.py "+SERVER+" "+str(PORT)+" "+str(ID))
+		os.system("start python "+"pasivo.py "+SERVER+" "+str(PORT)+" "+str(ID)+" "+str(KEY))
 	else:
-		os.system('gnome-terminal -e "'+'python '+'pasivo.py '+SERVER+' '+str(PORT)+' '+str(ID)+'"')
+		os.system('gnome-terminal -e "'+'python '+'pasivo.py '+SERVER+' '+
+					str(PORT)+' '+str(ID)+' '+str(KEY)+'"')
 except:
 	print u"Non se puido executar en outro terminal o script 'pasivo.py'"
 	sys.exit(0)
@@ -59,7 +61,11 @@ while True:
 	text = raw_input(">>> ").decode(sys.stdin.encoding or locale.getpreferredencoding(True))
 	if text.replace(" ",""):
 		msx = [ID,text]
-		activo.send(json.dumps(msx))
+		try:
+			activo.send(json.dumps(msx))
+		except:
+			print u"ERROR!"
+			sys.exit(0)
 	
 	
 	
