@@ -36,7 +36,7 @@ data = activo.recv(256)
 
 ID,ALIAS,KEY = json.loads(data)
 
-if ID == 0 or ALIAS == "Rechazar":
+if ID == 0 or ALIAS == "Rechazado":
 	print u"Conexión rechazada polo servidor"
 	sys.exit(0)
 
@@ -66,7 +66,3 @@ while True:
 		except:
 			print u"ERROR!"
 			sys.exit(0)
-	
-	
-	
-

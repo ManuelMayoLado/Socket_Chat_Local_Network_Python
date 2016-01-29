@@ -125,10 +125,10 @@ def servidor_init():
 			id += 1
 			
 		else:
-			msx = json.dumps([0,"Rechazar",0])
+			msx = json.dumps([0,"Rechazado",0])
 			try:
 				sock.send(msx)
-				del clientes[id]
+				clientes[id].activo = None
 			except:
 				pass
 			print u"\t--ERROR--\t",addr
