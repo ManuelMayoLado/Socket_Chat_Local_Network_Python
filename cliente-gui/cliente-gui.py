@@ -3,7 +3,6 @@
 import socket
 import json
 import re
-import time
 
 from Tkinter import *
 import ttk
@@ -14,9 +13,11 @@ class App():
 
 	def __init__(self):
 		self.root = Tk()
+		self.conectado = False
+		self.activo = None
+		self.pasivo = None
 		self.cadro_texto = Text(self.root,relief="flat",state="disable")
 		app_init(self)
-		self.conectado = False
 		self.server_i = server_info(self)
 		self.cadros_texto = cadros_text(self)
 		self.time_update()
@@ -29,16 +30,17 @@ class App():
 		port_server = self.server_i.entrada_port.get()
 		cadena_de_comprobacion_ip = "^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$"
 		if (re.findall(cadena_de_comprobacion_ip,ip_server) and
-				port_server and port_server.isdigit()):
+				port_server and port_server.isdigit() and 
+				(not self.conectado)):
 			self.server_i.boton_activado = True
 		else:
 			self.server_i.boton_activado = False
-			
+				
 		self.server_i.boton_conectar.configure(state="normal" 
 					if self.server_i.boton_activado else "disable")
 							
 		#TICKS
-		self.root.after(500, self.time_update)
+		self.root.after(50, self.time_update)
 	
 def app_init(appli):
 
@@ -57,8 +59,7 @@ class server_info():
 		
 		self.entrada_ip = ttk.Entry(appli.root, width=15, state="normal")
 		self.entrada_port = ttk.Entry(appli.root, width=15, state="normal")
-		self.entrada_alias = ttk.Entry(appli.root, width=15, state="normal",
-							foreground="blue")
+		self.entrada_alias = ttk.Entry(appli.root, width=15, state="normal")
 		
 		if self.entrada_ip.get():	
 			self.boton_activado = True
@@ -87,7 +88,9 @@ class server_info():
 		
 		self.boton_conectar.grid(row=0, column=6, pady=10, padx=5, sticky="we")
 		
-	def conectar(self,appli):
+		appli.root.bind("<Return>",lambda R: self.conectar(appli,R))	
+		
+	def conectar(self,appli,Return=False):
 	
 		ip_server = self.entrada_ip.get()
 		port_server = self.entrada_port.get()
@@ -96,6 +99,7 @@ class server_info():
 		
 		if (re.findall(cadena_de_comprobacion_ip,ip_server) and
 				self.entrada_port.get() and port_server.isdigit()):
+			#LANZAR FUNCIÓN DE CONEXIÓN
 			conexion_co_servidor(appli,ip_server,port_server,alias_conec)
 	
 class cadros_text():
@@ -125,7 +129,7 @@ class cadros_text():
 		self.boton_enviar.place(x=espacio_x,
 							y=TAMANHO_VENTANA[1]/1.4+espacio_y+alto_cadro_escritura+5)
 							
-		appli.root.bind("<Return>",self.enviar)
+		#appli.root.bind("<Return>",self.enviar)
 					
 	def enviar(self,Return=False):
 		texto = self.texto_envios.get()
@@ -149,13 +153,14 @@ def conexion_co_servidor(appli,server,port,alias):
 	try:
 		port = int(port)
 		
-		activo = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		activo.connect((server, port))
+		appli.activo = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		appli.activo.settimeout(1)
+		appli.activo.connect((server, port))
 
 		#ENVIMOS A ID 0 PARA QUE O SERVIDOR NOS ASIGNE UNHA ID
 		#ID, ALIAS, KEY
 		msx = [0,alias,0]
-		activo.send(json.dumps(msx))
+		appli.activo.send(json.dumps(msx))
 		
 		escribir_en(appli.cadros_texto.texto_recibos,
 					">>> Conectando...",True)
@@ -163,28 +168,30 @@ def conexion_co_servidor(appli,server,port,alias):
 		#RECIVIMOS A CONTESTACIÓN DO SERVIDOR
 		
 		try:
-			data = activo.recv(256)
+			data = appli.activo.recv(256)
 			ID,ALIAS,KEY = json.loads(data)
 			escribir_en(appli.cadros_texto.texto_recibos,
 					"...",True)
 
 			if ID == 0 or ALIAS == "Rechazado":
-				activo.close()
+				appli.activo.close()
 				escribir_en(appli.cadros_texto.texto_recibos,
 						" ERROR")
 			else:
 			#EXECUTAMOS O SCRIPT QUE MANEXA O SOCKET PASIVO
 			#AQUÍ LANZAMOS PASIVO
+				self.conectado = True
 				escribir_en(appli.cadros_texto.texto_recibos,
 						" Sucess!")
 		except:
+			appli.activo = None
 			escribir_en(appli.cadros_texto.texto_recibos,
 						" ERROR")
 			
 	except:
+		appli.activo = None
 		escribir_en(appli.cadros_texto.texto_recibos,
 					">>> Non se consigueu conectar co servidor")
-
-			
+	
 if __name__ == "__main__":
 	app = App()
