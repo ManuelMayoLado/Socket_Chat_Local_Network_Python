@@ -4,6 +4,9 @@ import socket
 import json
 import re
 
+import sys
+import locale
+
 from Tkinter import *
 import ttk
 
@@ -16,7 +19,7 @@ class App():
 		self.conectado = False
 		self.activo = None
 		self.pasivo = None
-		self.cadro_texto = Text(self.root,relief="flat",state="disable")
+		self.id = 0
 		app_init(self)
 		self.server_i = server_info(self)
 		self.cadros_texto = cadros_text(self)
@@ -25,21 +28,55 @@ class App():
 		
 	def time_update(self):
 	
-		#BOTÓN CAMBIAR
+	#BOTÓN CAMBIAR
 		ip_server = self.server_i.entrada_ip.get()
 		port_server = self.server_i.entrada_port.get()
 		cadena_de_comprobacion_ip = "^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$"
-		if (re.findall(cadena_de_comprobacion_ip,ip_server) and
-				port_server and port_server.isdigit() and 
-				(not self.conectado)):
+		cadena_de_comprobacion_name_s = "^\S+\.\D{2,3}$"
+		if ((re.findall(cadena_de_comprobacion_ip,ip_server) or 
+			(re.findall(cadena_de_comprobacion_name_s,ip_server))) 
+			and
+			port_server and port_server.isdigit() and 
+			(not self.conectado)):
 			self.server_i.boton_activado = True
 		else:
 			self.server_i.boton_activado = False
 				
 		self.server_i.boton_conectar.configure(state="normal" 
 					if self.server_i.boton_activado else "disable")
-							
-		#TICKS
+					
+	#CADRO ENVIOS
+	
+		if self.conectado:
+			self.cadros_texto.texto_envios.configure(state="normal")
+			self.cadros_texto.boton_enviar.configure(state="normal")
+			self.root.bind("<Return>",lambda R: self.cadros_texto.enviar(self,R))	
+		else:
+			self.cadros_texto.texto_envios.configure(state="disable")
+			self.cadros_texto.boton_enviar.configure(state="normal")
+					
+	#MENSAXES PASIVOS
+		if self.pasivo:
+			try:
+				data = self.pasivo.recv(512)
+				msx = json.loads(data)
+				id,ip,alias,text = msx
+				try:
+					alias = alias.decode(sys.stdin.encoding or locale.getpreferredencoding(True))
+					text = text.decode(sys.stdin.encoding or locale.getpreferredencoding(True))
+				except:
+					pass
+				cadena = "["+"("+str(id)+", "+ip+")"+" - "+alias+"] "+">>> "+text
+				try:
+					cadena = cadena.decode(sys.stdin.encoding or locale.getpreferredencoding(True))
+				except:
+					pass
+				escribir_en(self.cadros_texto.texto_recibos,
+						cadena)
+			except socket.error:
+				pass
+					
+	#TICKS
 		self.root.after(50, self.time_update)
 	
 def app_init(appli):
@@ -96,9 +133,12 @@ class server_info():
 		port_server = self.entrada_port.get()
 		alias_conec = self.entrada_alias.get()
 		cadena_de_comprobacion_ip = "^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$"
+		cadena_de_comprobacion_name_s = "^\S+\.\D{2,3}$"
 		
-		if (re.findall(cadena_de_comprobacion_ip,ip_server) and
-				self.entrada_port.get() and port_server.isdigit()):
+		if ((re.findall(cadena_de_comprobacion_ip,ip_server) or 
+			(re.findall(cadena_de_comprobacion_name_s,ip_server))) 
+			and
+			self.entrada_port.get() and port_server.isdigit()):
 			#LANZAR FUNCIÓN DE CONEXIÓN
 			conexion_co_servidor(appli,ip_server,port_server,alias_conec)
 	
@@ -112,7 +152,7 @@ class cadros_text():
 		self.texto_envios = Entry(appli.root,relief="solid",state="disable")
 		
 		self.boton_enviar = ttk.Button(appli.root, text="ENVIAR",
-							command=self.enviar,
+							command=lambda: self.enviar(appli),
 							state="disable")
 		
 			#COLOCAR NA VENTANA
@@ -131,12 +171,21 @@ class cadros_text():
 							
 		#appli.root.bind("<Return>",self.enviar)
 					
-	def enviar(self,Return=False):
+	def enviar(self,appli,Return=False):
 		texto = self.texto_envios.get()
 		texto = " ".join(texto.split())
 		if texto:
-			print ">>> "+texto
+			#texto = u""+texto
+			try:
+				texto = texto.decode(sys.stdin.encoding or locale.getpreferredencoding(True))
+			except:
+				pass
 			self.texto_envios.delete(0,END)
+			try:
+				msx = [appli.id,texto]
+				appli.activo.send(json.dumps(msx))
+			except:
+				pass
 			
 def escribir_en(entrada,texto,cont=False):
 	estado = entrada.cget("state")
@@ -159,7 +208,7 @@ def conexion_co_servidor(appli,server,port,alias):
 
 		#ENVIMOS A ID 0 PARA QUE O SERVIDOR NOS ASIGNE UNHA ID
 		#ID, ALIAS, KEY
-		msx = [0,alias,0]
+		msx = [appli.id,alias,0]
 		appli.activo.send(json.dumps(msx))
 		
 		escribir_en(appli.cadros_texto.texto_recibos,
@@ -169,20 +218,20 @@ def conexion_co_servidor(appli,server,port,alias):
 		
 		try:
 			data = appli.activo.recv(256)
-			ID,ALIAS,KEY = json.loads(data)
+			appli.id,ALIAS,KEY = json.loads(data)
 			escribir_en(appli.cadros_texto.texto_recibos,
 					"...",True)
 
-			if ID == 0 or ALIAS == "Rechazado":
+			if appli.id == 0 or ALIAS == "Rechazado":
 				appli.activo.close()
 				escribir_en(appli.cadros_texto.texto_recibos,
 						" ERROR")
 			else:
 			#EXECUTAMOS O SCRIPT QUE MANEXA O SOCKET PASIVO
-			#AQUÍ LANZAMOS PASIVO
-				self.conectado = True
+				appli.conectado = True
 				escribir_en(appli.cadros_texto.texto_recibos,
 						" Sucess!")
+				conectar_pasivo(appli,server,port,appli.id,ALIAS,KEY)
 		except:
 			appli.activo = None
 			escribir_en(appli.cadros_texto.texto_recibos,
@@ -192,6 +241,21 @@ def conexion_co_servidor(appli,server,port,alias):
 		appli.activo = None
 		escribir_en(appli.cadros_texto.texto_recibos,
 					">>> Non se consigueu conectar co servidor")
+					
+def conectar_pasivo(appli,server,port,id,alias,key):
+	#CONECTAMOS O SOCKET PASIVO
+	try:
+		appli.pasivo = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		appli.pasivo.connect((server, port))
+		msx = [id,u"Pasivo",key]
+		appli.pasivo.send(json.dumps(msx))
+		appli.pasivo.setblocking(0)
+	except:
+		escribir_en(appli.cadros_texto.texto_recibos,
+						">>> ERROR INESPERADO")
+		appli.activo = None
+		appli.pasivo = None
+		appli.conectado = False
 	
 if __name__ == "__main__":
 	app = App()

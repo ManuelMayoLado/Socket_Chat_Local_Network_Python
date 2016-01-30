@@ -56,7 +56,8 @@ class Procesando_Conexion(Thread):
 					pass
 			else:
 				break
-		print(u"Conexión cerrada:", id, self.addr)
+		print(u"Conexión cerrada:", self.id, self.addr)
+		del clientes[id]
 
 		
 #NOVOS CLIENTES - CONEXIÓNS
@@ -109,7 +110,7 @@ def servidor_init():
 			sock.send(msx)
 			print u"\tDevolución\t-ID: "+str(id),"-Alias: "+str(alias), "-Key: "+str(key)
 	
-		elif ((id in clientes) and (alias == u"Pasivo") and (key == str(clientes[id]["key"]))
+		elif ((id in clientes) and (alias == u"Pasivo") and (str(key) == str(clientes[id]["key"]))
 				and not (clientes[id]["pasivo"])):
 			#GARDAMOS O SOCK PASIVO DO CLIENTE
 			clientes[id]["pasivo"] = sock
