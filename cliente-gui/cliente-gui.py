@@ -230,7 +230,7 @@ def conexion_co_servidor(appli,server,port,alias):
 			#EXECUTAMOS O SCRIPT QUE MANEXA O SOCKET PASIVO
 				appli.conectado = True
 				escribir_en(appli.cadros_texto.texto_recibos,
-						" Sucess!")
+						" Success!")
 				conectar_pasivo(appli,server,port,appli.id,ALIAS,KEY)
 		except:
 			appli.activo = None
