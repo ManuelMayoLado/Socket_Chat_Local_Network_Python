@@ -98,6 +98,10 @@ class server_info():
 		self.entrada_port = ttk.Entry(appli.root, width=15, state="normal")
 		self.entrada_alias = ttk.Entry(appli.root, width=15, state="normal")
 		
+		#INSERTAMOS SERVIDOR POR DEFECTO E PORTO
+		
+		self.entrada_ip.insert(0,"psetta.no-ip.org")
+		
 		if self.entrada_ip.get():	
 			self.boton_activado = True
 		else:
@@ -109,8 +113,8 @@ class server_info():
 		
 			#TEXTO
 		
-		text_ip = ttk.Label(appli.root, text="IP do Servidor:")
-		text_port = ttk.Label(appli.root, text="Porto:")
+		text_ip = ttk.Label(appli.root, text="Server:")
+		text_port = ttk.Label(appli.root, text="Port:")
 		text_alias = ttk.Label(appli.root, text="Alias:")
 		
 			#COLOCAR NA VENTANA
