@@ -8,6 +8,8 @@ import sys
 import random
 from threading import *
 
+
+
 #VARIABLES SERVIDOR
 print(u"*** Servidor Chat - Local ***")
 
@@ -61,13 +63,12 @@ class Procesando_Conexion(Thread):
 		print(u"Conexión cerrada:", self.id, self.addr)
 		del clientes[id]
 
-		
-#NOVOS CLIENTES - CONEXIÓNS
-
-clientes = {}
-conexions_procesandose = []
-
 def servidor_init():
+	#NOVOS CLIENTES - CONEXIÓNS
+	global clientes
+	global conexions_procesandose
+	clientes = {}
+	conexions_procesandose = []
 	id = 1
 	#SERVIDOR ESCOITANDO
 	print(u"Servidor escoitando por novos clientes...")

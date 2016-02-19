@@ -170,8 +170,8 @@ class cadros_text():
 			#CAMBIOS NOS CAMPOS DE TEXTO AO CAMBIAR O TAMANHO DA VENTANA
 		
 		self.boton_enviar = ttk.Button(appli.root, text="ENVIAR",
-							command=lambda: self.enviar(appli),
-							state="disable")
+										command=lambda: self.enviar(appli),
+										state="disable")
 		
 			#COLOCAR NA VENTANA
 			
