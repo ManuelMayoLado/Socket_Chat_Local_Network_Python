@@ -44,14 +44,16 @@ class Procesando_Conexion(Thread):
 				sys.exit(0)
 			if data:
 				try:
-					#CADA MENSAXE DO CLIENTE TEN: ID e TEXTO
-					id, text = json.loads(data)
-					#ENVIANDO INFORMACIÓN DA MENSAXE A TODOS OS CLIENTES
-					#ID, IP, E TEXTO
-					alias = clientes[id]["alias"]
-					msx = json.dumps([id,self.addr[0],alias,text])
-					for client in clientes.values():
-						client["pasivo"].sendall(msx)
+					#CADA MENSAXE DO CLIENTE TEN: ID, KEY e TEXTO
+					id, key, text = json.loads(data)
+					#COMPROBAMOS A KEY
+					if id in clientes and clientes[id]["key"] == key:
+						#ENVIANDO INFORMACIÓN DA MENSAXE A TODOS OS CLIENTES
+						#ID, IP, E TEXTO
+						alias = clientes[id]["alias"]
+						msx = json.dumps([id,self.addr[0],alias,text])
+						for client in clientes.values():
+							client["pasivo"].sendall(msx)
 				except:
 					pass
 			else:
@@ -89,17 +91,18 @@ def servidor_init():
 		print u"\tRecibido\t-ID: "+str(id_cliente),"-Alias: "+str(alias),"-Key: "+str(key)
 		
 		#COMPROBAMOS O ID DO CLIENTE E SE XA HAI UN CLIENTE COA MESMA IP
-		if (id_cliente == 0) and (not addr[0] in [client["ip"] for client in clientes.values()]):
+		if ((id_cliente == 0) and (not addr[0] in [client["ip"] for client in clientes.values()])
+			and (len(clientes) < 10)):
 			#COMPROBAMOS SE O ALIAS XA EXISTE OU SE NON HAI
 			lista_alias = [client["alias"] for client in clientes.values()]
 			if not alias.replace(" ",""):
 				alias = "Anonymous"
 			if len(alias) > 20:
-				alias = alias[:20]
+				alias = alias[0:15]
 			if alias in lista_alias:
 				#EN CASO DE ALIAS REPETIDO, MODIFICAMOLO
 				alias_engadido = 2
-				while alias+str(alias_engadido) in lista_alias:
+				while alias+"_"+str(alias_engadido) in lista_alias:
 					alias_engadido += 1
 				alias = alias+"_"+str(alias_engadido)
 			#GARDAMOS O SOCK ACTIVO DO CLIENTE

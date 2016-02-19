@@ -60,7 +60,7 @@ while True:
 	time.sleep(0.1)
 	text = raw_input(">>> ").decode(sys.stdin.encoding or locale.getpreferredencoding(True))
 	if text.replace(" ",""):
-		msx = [ID,text]
+		msx = [ID,KEY,text]
 		try:
 			activo.send(json.dumps(msx))
 		except:

@@ -10,7 +10,7 @@ import locale
 from Tkinter import *
 import ttk
 
-TAMANHO_VENTANA = [600,400]
+TAMANHO_VENTANA = [800,400]
 	
 class App():
 
@@ -20,6 +20,7 @@ class App():
 		self.activo = None
 		self.pasivo = None
 		self.id = 0
+		self.key = 0
 		app_init(self)
 		self.server_i = server_info(self)
 		self.cadros_texto = cadros_text(self)
@@ -66,7 +67,7 @@ class App():
 					text = text.decode(sys.stdin.encoding or locale.getpreferredencoding(True))
 				except:
 					pass
-				cadena = "["+"("+str(id)+", "+ip+")"+" - "+alias+"] "+">>> "+text
+				cadena = "["+alias+"-"+str(ip)+"] "+"> "+text
 				try:
 					cadena = cadena.decode(sys.stdin.encoding or locale.getpreferredencoding(True))
 				except:
@@ -85,8 +86,11 @@ def app_init(appli):
 	appli.root.title("Cliente de Chat")
 	
 	#CONFIGURACION DA VENTANA
-	appli.root.resizable(width=False, height=False)
-	appli.root.minsize(TAMANHO_VENTANA[0],TAMANHO_VENTANA[1])
+	appli.root.resizable(width=True, height=True)
+	appli.root.minsize(TAMANHO_VENTANA[0]+30,TAMANHO_VENTANA[1]+30)
+	#CONFIGURAMOS A COLUMNA 7 E A FILA 1 PARA QUE PODAN EXPANDIRSE
+	appli.root.columnconfigure(7, weight=1)
+	appli.root.rowconfigure(1, weight=1)
 	
 class server_info():
 
@@ -119,9 +123,9 @@ class server_info():
 		
 			#COLOCAR NA VENTANA
 			
-		text_ip.grid(row=0, column=0, pady=10, padx=5, sticky="we")
-		text_port.grid(row=0, column=2, pady=10, padx=5, sticky="we")
-		text_alias.grid(row=0, column=4, pady=10, padx=5, sticky="we")
+		text_ip.grid(row=0, column=0, pady=10, padx=3, sticky="we")
+		text_port.grid(row=0, column=2, pady=10, padx=3, sticky="we")
+		text_alias.grid(row=0, column=4, pady=10, padx=3, sticky="we")
 		
 		self.entrada_ip.grid(row=0, column=1, pady=10, padx=5, sticky="we")
 		self.entrada_port.grid(row=0, column=3, pady=10, padx=5, sticky="we")
@@ -155,23 +159,17 @@ class cadros_text():
 		self.texto_recibos = Text(appli.root,relief="solid",state="disable",bg="#F7F6FA")
 		self.texto_envios = Entry(appli.root,relief="solid",state="disable")
 		
+			#CAMBIOS NOS CAMPOS DE TEXTO AO CAMBIAR O TAMANHO DA VENTANA
+		
 		self.boton_enviar = ttk.Button(appli.root, text="ENVIAR",
 							command=lambda: self.enviar(appli),
 							state="disable")
 		
 			#COLOCAR NA VENTANA
 			
-		espacio_x = 10
-		espacio_y = 50
-		alto_cadro_escritura = 20
-			
-		self.texto_recibos.place(x=espacio_x,y=espacio_y,
-					width=TAMANHO_VENTANA[0]-espacio_x*2,height=TAMANHO_VENTANA[1]/1.5)
-		self.texto_envios.place(x=espacio_x,y=TAMANHO_VENTANA[1]/1.4+espacio_y,
-					width=TAMANHO_VENTANA[0]-espacio_x*2,height=alto_cadro_escritura)
-					
-		self.boton_enviar.place(x=espacio_x,
-							y=TAMANHO_VENTANA[1]/1.4+espacio_y+alto_cadro_escritura+5)
+		self.texto_recibos.grid(column=0,row=1,columnspan=9,padx=5,pady=5,sticky="wens")
+		self.texto_envios.grid(column=0,row=2,columnspan=8,padx=5,pady=5,sticky="wens")
+		self.boton_enviar.grid(column=8,row=2,padx=5,pady=5)
 							
 		#appli.root.bind("<Return>",self.enviar)
 					
@@ -179,14 +177,13 @@ class cadros_text():
 		texto = self.texto_envios.get()
 		texto = " ".join(texto.split())
 		if texto:
-			#texto = u""+texto
 			try:
 				texto = texto.decode(sys.stdin.encoding or locale.getpreferredencoding(True))
 			except:
 				pass
 			self.texto_envios.delete(0,END)
 			try:
-				msx = [appli.id,texto]
+				msx = [appli.id,appli.key,texto]
 				appli.activo.send(json.dumps(msx))
 			except:
 				pass
@@ -222,7 +219,7 @@ def conexion_co_servidor(appli,server,port,alias):
 		
 		try:
 			data = appli.activo.recv(256)
-			appli.id,ALIAS,KEY = json.loads(data)
+			appli.id,ALIAS,appli.key = json.loads(data)
 			escribir_en(appli.cadros_texto.texto_recibos,
 					"...",True)
 
@@ -235,7 +232,10 @@ def conexion_co_servidor(appli,server,port,alias):
 				appli.conectado = True
 				escribir_en(appli.cadros_texto.texto_recibos,
 						" Success!")
-				conectar_pasivo(appli,server,port,appli.id,ALIAS,KEY)
+				escribir_en(appli.cadros_texto.texto_recibos,
+						"User: "+str(ALIAS))
+				conectar_pasivo(appli,server,port,appli.id,ALIAS,appli.key)
+				appli.cadros_texto.texto_envios.focus()
 		except:
 			appli.activo = None
 			escribir_en(appli.cadros_texto.texto_recibos,
