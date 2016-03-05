@@ -112,7 +112,7 @@ class server_info():
 		
 		#INSERTAMOS SERVIDOR POR DEFECTO E PORTO
 		
-		self.entrada_ip.insert(0,"psetta.no-ip.org")
+		#self.entrada_ip.insert(0,"psetta.no-ip.org")
 		
 		if self.entrada_ip.get():	
 			self.boton_activado = True
@@ -174,7 +174,7 @@ class cadros_text():
 							state="disable")
 		
 			#COLOCAR NA VENTANA
-			
+		
 		self.texto_recibos.grid(column=0,row=1,columnspan=9,padx=5,pady=5,sticky="wens")
 		self.texto_envios.grid(column=0,row=2,columnspan=8,padx=5,pady=5,sticky="wens")
 		self.boton_enviar.grid(column=8,row=2,padx=5,pady=5)

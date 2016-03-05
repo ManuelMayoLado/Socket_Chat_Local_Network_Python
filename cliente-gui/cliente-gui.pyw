@@ -112,7 +112,7 @@ class server_info():
 		
 		#INSERTAMOS SERVIDOR POR DEFECTO E PORTO
 		
-		self.entrada_ip.insert(0,"psetta.no-ip.org")
+		#self.entrada_ip.insert(0,"psetta.no-ip.org")
 		
 		if self.entrada_ip.get():	
 			self.boton_activado = True

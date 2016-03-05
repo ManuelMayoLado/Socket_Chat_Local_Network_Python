@@ -85,7 +85,7 @@ def servidor_init():
 			data = sock.recv(1024)
 			data = json.loads(data)
 		except:
-			data = ["","",0]
+			data = [None,None,None]
 		
 		id_cliente, alias, key = data
 		
@@ -130,14 +130,13 @@ def servidor_init():
 			id += 1
 			
 		else:
-			msx = json.dumps([0,"Rechazado",0])
+			msx = "Rechazado\n"
 			try:
 				sock.send(msx)
 				clientes[id].activo = None
 			except:
 				pass
-			print u"\t--ERROR--\t",addr
-			print u"\t"+str(clientes)
+			print u"\tERROR --\t",addr
 		
 servidor_init()
 
