@@ -61,7 +61,7 @@ class Procesando_Conexion(Thread):
 			else:
 				break
 		print(u"Conexión cerrada:", self.id, self.addr)
-		del clientes[id]
+		del clientes[self.id]
 
 def servidor_init():
 	#NOVOS CLIENTES - CONEXIÓNS

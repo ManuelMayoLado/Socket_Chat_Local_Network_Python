@@ -10,7 +10,7 @@ import locale
 from Tkinter import *
 import ttk
 
-TAMANHO_VENTANA = [800,400]
+TAMANHO_VENTANA = [500,250]
 	
 class App():
 
@@ -95,7 +95,7 @@ def app_init(appli):
 	
 	#CONFIGURACION DA VENTANA
 	appli.root.resizable(width=True, height=True)
-	appli.root.minsize(TAMANHO_VENTANA[0]+30,TAMANHO_VENTANA[1]+30)
+	appli.root.minsize(TAMANHO_VENTANA[0]+110,TAMANHO_VENTANA[1]+30)
 	#CONFIGURAMOS A COLUMNA 7 E A FILA 1 PARA QUE PODAN EXPANDIRSE
 	appli.root.columnconfigure(7, weight=1)
 	appli.root.rowconfigure(1, weight=1)
