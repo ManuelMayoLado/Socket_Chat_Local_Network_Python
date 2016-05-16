@@ -38,7 +38,8 @@ class Procesando_Conexion(Thread):
 			try:
 				data = self.sock.recv(512)
 			except:
-				print u">>> Desconexión de ",str([self.id,clientes[id]["alias"]]),str(self.addr)
+				mensaxe_desc = u">>> Desconexión de "+str([self.id,clientes[self.id]["alias"]])+" "+str(self.addr)
+				print(mensaxe_desc)
 				try:
 					del clientes[id]
 				except:
@@ -60,7 +61,8 @@ class Procesando_Conexion(Thread):
 					pass
 			else:
 				break
-		print(u"Conexión cerrada:", self.id, self.addr)
+		mensaxe_con_cerrada = u"Conexión cerrada: "+str(self.id)+" "+str(self.addr)
+		print(mensaxe_con_cerrada)
 		del clientes[self.id]
 
 def servidor_init():
